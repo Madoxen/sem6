@@ -88,18 +88,47 @@ bmi.automf()
 smoking_status.automf()
 stroke.automf()
 
-rule1 = ctrl.Rule(heart_disease['good'] | avg_glucose_level['good'], stroke['good'])
-rule2 = ctrl.Rule(heart_disease['good'], stroke['good'])
-rule3 = ctrl.Rule(avg_glucose_level['good'], stroke['good'])
-rule4 = ctrl.Rule(avg_glucose_level['poor'], stroke['poor'])
-rule5 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
+rule1 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['good'], stroke['good'])
+rule2 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['mediocre'], stroke['good'])
+rule3 = ctrl.Rule(heart_disease['good'], stroke['good'])
+rule4 = ctrl.Rule(smoking_status['good'], stroke['good'])
+rule5 = ctrl.Rule(smoking_status['poor'], stroke['poor'])
+rule6 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
+rule7 = ctrl.Rule(heart_disease['poor'] & smoking_status['poor'], stroke['poor'])
+rule8 = ctrl.Rule(heart_disease['good'] & smoking_status['good'], stroke['good'])
+rule9 = ctrl.Rule(heart_disease['good'] & smoking_status['mediocre'], stroke['good'])
+rule10 = ctrl.Rule(heart_disease['good'], stroke['good'])
+rule11 = ctrl.Rule(bmi['good'], stroke['good'])
+rule12 = ctrl.Rule(bmi['poor'], stroke['poor'])
+rule13 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
+rule14 = ctrl.Rule(bmi['poor'] & age['poor'], stroke['poor'])
+rule15 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['good'], stroke['good'])
+rule16 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['mediocre'], stroke['good'])
+rule17 = ctrl.Rule(heart_disease['good'], stroke['good'])
+rule18 = ctrl.Rule(work_type['good'], stroke['good'])
+rule19 = ctrl.Rule(work_type['poor'], stroke['poor'])
+rule20 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
+rule21 = ctrl.Rule(age['poor'] & work_type['poor'], stroke['poor'])
+rule22 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['good'], stroke['good'])
+rule23 = ctrl.Rule(age['good'] & avg_glucose_level['good'], stroke['good'])
+rule24 = ctrl.Rule(heart_disease['good'], stroke['good'])
+rule25 = ctrl.Rule(age['good'], stroke['good'])
+rule26 = ctrl.Rule(age['poor'], stroke['poor'])
+rule27 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
+rule28 = ctrl.Rule(bmi['poor'] & avg_glucose_level['poor'], stroke['poor'])
+rule29 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['good'], stroke['good'])
+rule30 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['mediocre'], stroke['good'])
 
-stroke_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
+stroke_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5,rule6,rule7,rule8,rule9,rule10,rule11,rule12,rule13,rule14,rule15,rule16, rule17, rule18, rule19, rule20,rule21,rule22,rule23,rule24,rule25,rule26,rule27,rule28,rule29,rule30])
 stroke = ctrl.ControlSystemSimulation(stroke_ctrl)
 
 
-stroke.input['heart_disease'] = 0
-stroke.input['avg_glucose_level'] = 2.0
+stroke.input['heart_disease'] = 1.0
+stroke.input['avg_glucose_level'] = 1.0
+stroke.input['bmi'] = 4.0
+stroke.input['age'] = 2.0
+stroke.input['smoking_status'] = 3.0
+stroke.input['work_type'] = 4.0
 
 
 # Crunch the numbers
