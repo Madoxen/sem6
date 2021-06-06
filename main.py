@@ -79,81 +79,81 @@ bmi = ctrl.Antecedent(x_train["bmi"], 'bmi')
 smoking_status = ctrl.Antecedent(x_train["smoking_status"], 'smoking_status')
 stroke = ctrl.Consequent(y_train, 'stroke')
 
-gender.automf()
-age.automf()
-hypertension.automf()
-heart_disease.automf()
-ever_married.automf()
-work_type.automf()
-Residence_type.automf()
-avg_glucose_level.automf()
-bmi.automf()
-smoking_status.automf()
-stroke.automf()
+gender.automf(2, names=["Male", "Female"])
+age.automf(4, names=["0-18", "18-35", "35-65", "65+"])
+hypertension.automf(2, names=["No", "Yes"])
+heart_disease.automf(2, names=["No", "Yes"])
+ever_married.automf(2, names=["No", "Yes"])
+work_type.automf(5, names=['Private', 'Self-employed', 'children', 'Govt_job', 'Never_worked'])
+Residence_type.automf(2, names=["Urban", "Rural"])
+avg_glucose_level.automf(3, names=["Low", "Medium", "High"])
+bmi.automf(4, names=['underweight', 'normal', 'overweight', 'obese', 'extremely_obese'])
+smoking_status.automf(4, names=['never smoked', 'Unknown', 'formerly smoked', 'smokes'])
+stroke.automf(2, names=["No", "Yes"])
 
-rule1 = ctrl.Rule(heart_disease['good'] &
-                  avg_glucose_level['good'], stroke['good'])
-rule2 = ctrl.Rule(heart_disease['good'] &
-                  avg_glucose_level['mediocre'], stroke['good'])
-rule3 = ctrl.Rule(heart_disease['good'], stroke['good'])
-rule4 = ctrl.Rule(smoking_status['good'], stroke['good'])
-rule5 = ctrl.Rule(smoking_status['poor'], stroke['poor'])
-rule6 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
-rule7 = ctrl.Rule(heart_disease['poor'] &
-                  smoking_status['poor'], stroke['poor'])
-rule8 = ctrl.Rule(heart_disease['good'] &
-                  smoking_status['good'], stroke['good'])
-rule9 = ctrl.Rule(heart_disease['good'] &
-                  smoking_status['mediocre'], stroke['good'])
-rule10 = ctrl.Rule(heart_disease['good'], stroke['good'])
-rule11 = ctrl.Rule(bmi['good'], stroke['good'])
-rule12 = ctrl.Rule(bmi['poor'], stroke['poor'])
-rule13 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
-rule14 = ctrl.Rule(bmi['poor'] & age['poor'], stroke['poor'])
-rule15 = ctrl.Rule(heart_disease['good'] &
-                   avg_glucose_level['good'], stroke['good'])
-rule16 = ctrl.Rule(heart_disease['good'] &
-                   avg_glucose_level['mediocre'], stroke['good'])
-rule17 = ctrl.Rule(heart_disease['good'], stroke['good'])
-rule18 = ctrl.Rule(work_type['good'], stroke['good'])
-rule19 = ctrl.Rule(work_type['poor'], stroke['poor'])
-rule20 = ctrl.Rule(Residence_type['poor'], stroke['poor'])
-rule21 = ctrl.Rule(age['poor'] & work_type['poor'], stroke['poor'])
-rule22 = ctrl.Rule(heart_disease['good'] &
-                   avg_glucose_level['good'], stroke['good'])
-rule23 = ctrl.Rule(age['good'] & avg_glucose_level['good'], stroke['good'])
-rule24 = ctrl.Rule(heart_disease['good'], stroke['good'])
-rule25 = ctrl.Rule(age['good'], stroke['good'])
-rule26 = ctrl.Rule(age['poor'], stroke['poor'])
-rule27 = ctrl.Rule(hypertension['poor'], stroke['poor'])
-rule28 = ctrl.Rule(gender['poor'] & ever_married['poor'], stroke['poor'])
-rule29 = ctrl.Rule(heart_disease['good'] &
-                   avg_glucose_level['good'], stroke['good'])
-rule30 = ctrl.Rule(heart_disease['good'] &
-                   avg_glucose_level['mediocre'], stroke['good'])
-rule30 = ctrl.Rule(heart_disease['good'] &
-                   avg_glucose_level['mediocre'], stroke['good'])
-rule31 = ctrl.Rule(Residence_type['good'] | bmi['average'], stroke['poor'])
-rule32 = ctrl.Rule(gender['poor'] | age['poor'] | hypertension['poor'] | heart_disease['poor'] |
-                   ever_married['poor'] | work_type['poor'] | Residence_type['poor'] | bmi['poor'], stroke['poor'])
-rule33 = ctrl.Rule(gender['good'] | age['good'] | hypertension['good'] | heart_disease['good'] |
-                   ever_married['good'] | work_type['good'] | Residence_type['good'] | bmi['good'], stroke['good'])
+rule1 = ctrl.Rule(heart_disease['Yes'] &
+                  avg_glucose_level['High'], stroke['Yes'])
+rule2 = ctrl.Rule(heart_disease['Yes'] &
+                  avg_glucose_level['Medium'], stroke['Yes'])
+rule3 = ctrl.Rule(heart_disease['Yes'], stroke['Yes'])
+rule4 = ctrl.Rule(smoking_status['smokes'], stroke['Yes'])
+rule5 = ctrl.Rule(smoking_status['never smoked'], stroke['No'])
+rule6 = ctrl.Rule(heart_disease['No'], stroke['No'])
+rule7 = ctrl.Rule(heart_disease['No'] &
+                  smoking_status['never smoked'], stroke['No'])
+rule8 = ctrl.Rule(heart_disease['Yes'] &
+                  smoking_status['smokes'], stroke['Yes'])
+rule9 = ctrl.Rule(heart_disease['Yes'] &
+                  smoking_status['formerly smoked'], stroke['Yes'])
+rule10 = ctrl.Rule(heart_disease['Yes'], stroke['Yes'])
+rule11 = ctrl.Rule(bmi['extremely_obese'], stroke['Yes'])
+rule12 = ctrl.Rule(bmi['underweight'], stroke['No'])
+rule13 = ctrl.Rule(heart_disease['No'], stroke['No'])
+rule14 = ctrl.Rule(bmi['underweight'] & age['0-18'], stroke['No'])
+rule15 = ctrl.Rule(heart_disease['Yes'] &
+                   avg_glucose_level['High'], stroke['Yes'])
+rule16 = ctrl.Rule(heart_disease['Yes'] &
+                   avg_glucose_level['Medium'], stroke['Yes'])
+rule17 = ctrl.Rule(heart_disease['Yes'], stroke['Yes'])
+rule18 = ctrl.Rule(work_type['Never_worked'], stroke['Yes'])
+rule19 = ctrl.Rule(work_type['Private'], stroke['No'])
+rule20 = ctrl.Rule(Residence_type['Urban'], stroke['No'])
+rule21 = ctrl.Rule(age['0-18'] & work_type['Private'], stroke['No'])
+rule22 = ctrl.Rule(heart_disease['Yes'] &
+                   avg_glucose_level['High'], stroke['Yes'])
+rule23 = ctrl.Rule(age['65+'] & avg_glucose_level['High'], stroke['Yes'])
+rule24 = ctrl.Rule(heart_disease['Yes'], stroke['Yes'])
+rule25 = ctrl.Rule(age['65+'], stroke['Yes'])
+rule26 = ctrl.Rule(age['0-18'], stroke['No'])
+rule27 = ctrl.Rule(hypertension['No'], stroke['No'])
+rule28 = ctrl.Rule(gender['Male'] & ever_married['No'], stroke['No'])
+rule29 = ctrl.Rule(heart_disease['Yes'] &
+                   avg_glucose_level['High'], stroke['Yes'])
+rule30 = ctrl.Rule(heart_disease['Yes'] &
+                   avg_glucose_level['Medium'], stroke['Yes'])
+rule30 = ctrl.Rule(heart_disease['Yes'] &
+                   avg_glucose_level['Medium'], stroke['Yes'])
+rule31 = ctrl.Rule(Residence_type['Rural'] | bmi['normal'], stroke['No'])
+rule32 = ctrl.Rule(gender['Female'] | age['0-18'] | hypertension['No'] | heart_disease['No'] |
+                   ever_married['No'] | work_type['Private'] | Residence_type['Urban'] | bmi['underweight'], stroke['No'])
+rule33 = ctrl.Rule(gender['Male'] | age['65+'] | hypertension['Yes'] | heart_disease['Yes'] |
+                   ever_married['Yes'] | work_type['Never_worked'] | Residence_type['Rural'] | bmi['extremely_obese'], stroke['Yes'])
 
 stroke_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10, rule11, rule12, rule13, rule14,
                                   rule15, rule16, rule17, rule18, rule19, rule20, rule21, rule22, rule23, rule24, rule25, rule26, rule27, rule28, rule29, rule30, rule31, rule32, rule33])
 stroke = ctrl.ControlSystemSimulation(stroke_ctrl)
 
 
-stroke.input['heart_disease'] = 1.0
-stroke.input['avg_glucose_level'] = 1.0
-stroke.input['bmi'] = 4.0
-stroke.input['age'] = 2.0
-stroke.input['smoking_status'] = 3.0
-stroke.input['work_type'] = 4.0
-stroke.input['gender'] = 1.0
-stroke.input['Residence_type'] = 2.0
-stroke.input['hypertension'] = 2.0
-stroke.input['ever_married'] = 1.0
+stroke.input['heart_disease'] = 0.0
+stroke.input['avg_glucose_level'] = 0.0
+stroke.input['bmi'] = 0.0
+stroke.input['age'] = 0.0
+stroke.input['smoking_status'] = 0.0
+stroke.input['work_type'] = 0.0
+stroke.input['gender'] = 0.0
+stroke.input['Residence_type'] = 0.0
+stroke.input['hypertension'] = 0.0
+stroke.input['ever_married'] = 0.0
 
 
 TP = 0
@@ -171,7 +171,7 @@ for index, row in x_test.iterrows():
     val = 0
     true_val = y_test[index]
     stroke.compute()
-  ##  print(str(stroke.output['stroke'] > treshold) + " " + str(true_val))
+    print(stroke.output['stroke'])
     if stroke.output['stroke'] > treshold:
         val = 1
 
