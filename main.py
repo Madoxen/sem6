@@ -2,28 +2,23 @@ from numpy.core.fromnumeric import mean
 import pandas as pd
 from collections import Counter
 import numpy as np
-from sklearn.model_selection import train_test_split 
-from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
 import numpy as np
-
-
+import matplotlib
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
 
 stroke = pd.read_csv('healthcare-dataset-stroke-data.csv')
 
-
-stroke = stroke.query("gender != 'Other'") # oh no 
+stroke = stroke.query("gender != 'Other'")  # oh no
 
 stroke.drop('id', inplace=True, axis=1)
 for c in stroke.columns:
     if c not in ['bmi', 'avg_glucose_level', 'age']:
         print(c, ":", Counter(stroke[c]))
 
-
-
 nan = [np.nan]
-print(stroke.query("bmi == @nan and smoking_status == 'Unknown'")) # no corellation
-
-
+print(stroke.query("bmi == @nan and smoking_status == 'Unknown'"))  # no corellation
 
 nominal_dict = {
     'age': {
@@ -47,8 +42,6 @@ for i in nominal_dict.keys():
     bins = pair['bins']
     stroke[i] = np.vectorize(d.get)(np.digitize(stroke[i], bins))
 
-
-
 value_mapper_dict = {
     'gender': {'Female': 0, 'Male': 1},
     'ever_married': {'No': 0, 'Yes': 1},
@@ -60,17 +53,59 @@ value_mapper_dict = {
     'bmi': {'underweight': 0, 'normal': 1, 'overweight': 2, 'obese': 3, 'extremely_obese': 4}
 }
 
-
 for (k, v) in value_mapper_dict.items():
     stroke[k] = stroke[k].map(v)
 print(stroke)
 
-stroke['bmi'] = stroke['bmi'].fillna(mean(stroke['bmi'].dropna())) #nans are assigned as mean
+stroke['bmi'] = stroke['bmi'].fillna(mean(stroke['bmi'].dropna()))  # nans are assigned as mean
 
-x = stroke.iloc[:,:-1]
-y = stroke.iloc[:,-1]
+x = stroke.iloc[:, :-1]
+y = stroke.iloc[:, -1]
 
-x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.20, random_state=1)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=1)
+
+gender = ctrl.Antecedent(x_train["gender"], 'gender')
+age = ctrl.Antecedent(x_train["age"], 'age')
+hypertension = ctrl.Antecedent(x_train["hypertension"], 'hypertension')
+heart_disease = ctrl.Antecedent(x_train["heart_disease"], 'heart_disease')
+ever_married = ctrl.Antecedent(x_train["ever_married"], 'ever_married')
+work_type = ctrl.Antecedent(x_train["work_type"], 'work_type')
+Residence_type = ctrl.Antecedent(x_train["Residence_type"], 'Residence_type')
+avg_glucose_level = ctrl.Antecedent(x_train["avg_glucose_level"], 'avg_glucose_level')
+bmi = ctrl.Antecedent(x_train["bmi"], 'bmi')
+smoking_status = ctrl.Antecedent(x_train["smoking_status"], 'smoking_status')
+stroke = ctrl.Consequent(y_train, 'stroke')
+
+gender.automf()
+age.automf()
+hypertension.automf()
+heart_disease.automf()
+ever_married.automf()
+work_type.automf()
+Residence_type.automf()
+avg_glucose_level.automf()
+bmi.automf()
+smoking_status.automf()
+stroke.automf()
+
+rule1 = ctrl.Rule(heart_disease['good'] | avg_glucose_level['good'], stroke['good'])
+rule2 = ctrl.Rule(heart_disease['good'], stroke['good'])
+rule3 = ctrl.Rule(avg_glucose_level['good'], stroke['good'])
+rule4 = ctrl.Rule(avg_glucose_level['poor'], stroke['poor'])
+rule5 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
+
+stroke_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
+stroke = ctrl.ControlSystemSimulation(stroke_ctrl)
 
 
+stroke.input['heart_disease'] = 0
+stroke.input['avg_glucose_level'] = 2.0
 
+
+# Crunch the numbers
+stroke.compute()
+
+"""
+Once computed, we can view the result as well as visualize it.
+"""
+print(stroke.output['stroke'])
