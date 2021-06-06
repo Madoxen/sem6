@@ -177,7 +177,7 @@ for index, row in x_test.iterrows():
 
     if val == 1:
         if val == true_val:
-            TP += 1 #predicted 
+            TP += 1  # predicted
         else:
             FP += 1
     else:
@@ -191,6 +191,17 @@ print("TP " + str(TP))
 print("TN " + str(TN))
 print("FP " + str(FP))
 print("FN " + str(FN))
+tpr = TP / (TP + FN)
+tnr = TN / (TN + FP)
+acc = TP+TN / (y_test.count())
+ppv = TP / (TP + FP)
+
+print("Sensitivity (TPR) " + str(tpr))
+print("Specificity (TNR) " + str(tnr))
+print("Accuracy " + str(acc))
+print("Precision (PPV) " + str(ppv))
+print("F1 " + str(2.0*ppv*tpr/(ppv+tpr)))
+
 
 # testing phase
 # go through the test set
