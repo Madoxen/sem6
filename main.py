@@ -107,15 +107,15 @@ rule16 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['mediocre'], stroke
 rule17 = ctrl.Rule(heart_disease['good'], stroke['good'])
 rule18 = ctrl.Rule(work_type['good'], stroke['good'])
 rule19 = ctrl.Rule(work_type['poor'], stroke['poor'])
-rule20 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
+rule20 = ctrl.Rule(Residence_type['poor'], stroke['poor'])
 rule21 = ctrl.Rule(age['poor'] & work_type['poor'], stroke['poor'])
 rule22 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['good'], stroke['good'])
 rule23 = ctrl.Rule(age['good'] & avg_glucose_level['good'], stroke['good'])
 rule24 = ctrl.Rule(heart_disease['good'], stroke['good'])
 rule25 = ctrl.Rule(age['good'], stroke['good'])
 rule26 = ctrl.Rule(age['poor'], stroke['poor'])
-rule27 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
-rule28 = ctrl.Rule(bmi['poor'] & avg_glucose_level['poor'], stroke['poor'])
+rule27 = ctrl.Rule(hypertension['poor'], stroke['poor'])
+rule28 = ctrl.Rule(gender['poor'] & ever_married['poor'], stroke['poor'])
 rule29 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['good'], stroke['good'])
 rule30 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['mediocre'], stroke['good'])
 
@@ -129,6 +129,11 @@ stroke.input['bmi'] = 4.0
 stroke.input['age'] = 2.0
 stroke.input['smoking_status'] = 3.0
 stroke.input['work_type'] = 4.0
+stroke.input['gender'] = 1.0
+stroke.input['Residence_type'] = 2.0
+stroke.input['hypertension'] = 2.0
+stroke.input['ever_married']= 1.0
+
 
 
 # Crunch the numbers
