@@ -64,7 +64,7 @@ x = stroke.iloc[:, :-1]
 y = stroke.iloc[:, -1]
 
 x_train, x_test, y_train, y_test = train_test_split(
-    x, y, test_size=0.30, random_state=1)
+    x, y, test_size=0.40, random_state=1)
 
 gender = ctrl.Antecedent(x_train["gender"], 'gender')
 age = ctrl.Antecedent(x_train["age"], 'age')
