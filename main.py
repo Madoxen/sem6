@@ -110,21 +110,35 @@ rule16 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['mediocre'], stroke
 rule17 = ctrl.Rule(heart_disease['good'], stroke['good'])
 rule18 = ctrl.Rule(work_type['good'], stroke['good'])
 rule19 = ctrl.Rule(work_type['poor'], stroke['poor'])
-rule20 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
+rule20 = ctrl.Rule(Residence_type['poor'], stroke['poor'])
 rule21 = ctrl.Rule(age['poor'] & work_type['poor'], stroke['poor'])
 rule22 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['good'], stroke['good'])
 rule23 = ctrl.Rule(age['good'] & avg_glucose_level['good'], stroke['good'])
 rule24 = ctrl.Rule(heart_disease['good'], stroke['good'])
 rule25 = ctrl.Rule(age['good'], stroke['good'])
 rule26 = ctrl.Rule(age['poor'], stroke['poor'])
-rule27 = ctrl.Rule(heart_disease['poor'], stroke['poor'])
-rule28 = ctrl.Rule(bmi['poor'] & avg_glucose_level['poor'], stroke['poor'])
+rule27 = ctrl.Rule(hypertension['poor'], stroke['poor'])
+rule28 = ctrl.Rule(gender['poor'] & ever_married['poor'], stroke['poor'])
 rule29 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['good'], stroke['good'])
 rule30 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['mediocre'], stroke['good'])
+rule30 = ctrl.Rule(heart_disease['good'] & avg_glucose_level['mediocre'], stroke['good'])
+rule20 = ctrl.Rule(Residence_type['good'] | bmi['average'], stroke['poor'])
+rule20 = ctrl.Rule(gender['good'] | age['good'] | hypertension['poor'] | heart_disease['poor'] | ever_married['good'] | work_type['good'] | Residence_type['good'] | bmi['average'], stroke['poor'])
 
 stroke_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5,rule6,rule7,rule8,rule9,rule10,rule11,rule12,rule13,rule14,rule15,rule16, rule17, rule18, rule19, rule20,rule21,rule22,rule23,rule24,rule25,rule26,rule27,rule28,rule29,rule30])
 stroke = ctrl.ControlSystemSimulation(stroke_ctrl)
 
+
+stroke.input['heart_disease'] = 1.0
+stroke.input['avg_glucose_level'] = 1.0
+stroke.input['bmi'] = 4.0
+stroke.input['age'] = 2.0
+stroke.input['smoking_status'] = 3.0
+stroke.input['work_type'] = 4.0
+stroke.input['gender'] = 1.0
+stroke.input['Residence_type'] = 2.0
+stroke.input['hypertension'] = 2.0
+stroke.input['ever_married']= 1.0
 
 
 for index, row in x_test.iterrows():
