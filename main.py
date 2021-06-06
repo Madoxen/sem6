@@ -55,14 +55,16 @@ value_mapper_dict = {
 
 for (k, v) in value_mapper_dict.items():
     stroke[k] = stroke[k].map(v)
-print(stroke)
 
-stroke['bmi'] = stroke['bmi'].fillna(mean(stroke['bmi'].dropna()))  # nans are assigned as mean
+
+stroke['bmi'] = stroke['bmi'].fillna(
+    mean(stroke['bmi'].dropna()))  # nans are assigned as mean
 
 x = stroke.iloc[:, :-1]
 y = stroke.iloc[:, -1]
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=1)
+x_train, x_test, y_train, y_test = train_test_split(
+    x, y, test_size=0.20, random_state=1)
 
 gender = ctrl.Antecedent(x_train["gender"], 'gender')
 age = ctrl.Antecedent(x_train["age"], 'age')
@@ -71,7 +73,8 @@ heart_disease = ctrl.Antecedent(x_train["heart_disease"], 'heart_disease')
 ever_married = ctrl.Antecedent(x_train["ever_married"], 'ever_married')
 work_type = ctrl.Antecedent(x_train["work_type"], 'work_type')
 Residence_type = ctrl.Antecedent(x_train["Residence_type"], 'Residence_type')
-avg_glucose_level = ctrl.Antecedent(x_train["avg_glucose_level"], 'avg_glucose_level')
+avg_glucose_level = ctrl.Antecedent(
+    x_train["avg_glucose_level"], 'avg_glucose_level')
 bmi = ctrl.Antecedent(x_train["bmi"], 'bmi')
 smoking_status = ctrl.Antecedent(x_train["smoking_status"], 'smoking_status')
 stroke = ctrl.Consequent(y_train, 'stroke')
@@ -123,18 +126,13 @@ stroke_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5,rule6,rule7,
 stroke = ctrl.ControlSystemSimulation(stroke_ctrl)
 
 
-stroke.input['heart_disease'] = 1.0
-stroke.input['avg_glucose_level'] = 1.0
-stroke.input['bmi'] = 4.0
-stroke.input['age'] = 2.0
-stroke.input['smoking_status'] = 3.0
-stroke.input['work_type'] = 4.0
+
+for index, row in x_test.iterrows():
+    d = row.to_dict()
+    stroke.inputs(d)
+    stroke.compute()
+    print(stroke.output['stroke'])
 
 
-# Crunch the numbers
-stroke.compute()
-
-"""
-Once computed, we can view the result as well as visualize it.
-"""
-print(stroke.output['stroke'])
+# testing phase
+# go through the test set
