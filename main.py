@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
+import matplotlib.pyplot as plt
+import seaborn as sns; sns.set_theme()
 
 stroke = pd.read_csv('healthcare-dataset-stroke-data.csv')
 
@@ -203,5 +205,8 @@ print("Precision (PPV) " + str(ppv))
 print("F1 " + str(2.0*ppv*tpr/(ppv+tpr)))
 
 
+data = [[FN, TN],[TP, FP]]
+ax = sns.heatmap(data, annot=True, fmt="d",linewidths=.5)
+plt.show()
 # testing phase
 # go through the test set
