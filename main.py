@@ -30,7 +30,7 @@ nominal_dict = {
     },
     'avg_glucose_level': {
         'bins': [0, 70, 130],
-        'names': ['low', 'normal', 'high']
+        'names': ['Low', 'Medium', 'High']
     },
     'bmi': {
         'bins': [0, 18.5, 25, 30, 35],
@@ -52,7 +52,7 @@ value_mapper_dict = {
     'Residence_type': {'Urban': 0, 'Rural': 1},
     'smoking_status': {'never smoked': 0, 'Unknown': 1, 'formerly smoked': 2, 'smokes': 3},
     'age': {'0-18': 0, '18-35': 1, '35-65': 2, '65+': 3},
-    'avg_glucose_level': {'low': 0, 'normal': 1, 'high': 2},
+    'avg_glucose_level': {'Low': 0, 'Medium': 1, 'High': 2},
     'bmi': {'underweight': 0, 'normal': 1, 'overweight': 2, 'obese': 3, 'extremely_obese': 4}
 }
 
@@ -71,8 +71,9 @@ x = stroke.iloc[:, :-1]
 y = stroke.iloc[:, -1]
 
 x_train, x_test, y_train, y_test = train_test_split(
-    x, y, test_size=0.40, random_state=1)
+    x, y, test_size=0.95, random_state=1)
 
+print(x_train)
 
 age = ctrl.Antecedent(x_train["age"], 'age')
 hypertension = ctrl.Antecedent(x_train["hypertension"], 'hypertension')
@@ -97,73 +98,65 @@ stroke.automf(2, names=["No", "Yes"])
 
 ruleset = [
 
-    ctrl.Rule(heart_disease['Yes'] &
-              avg_glucose_level['High'], stroke['Yes']),
-    ctrl.Rule(heart_disease['Yes'] &
-              avg_glucose_level['Medium'], stroke['Yes']),
-    ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
-    ctrl.Rule(smoking_status['smokes'], stroke['Yes']),
-    ctrl.Rule(smoking_status['never smoked'], stroke['No']),
-    ctrl.Rule(heart_disease['No'], stroke['No']),
-    ctrl.Rule(heart_disease['No'] &
-              smoking_status['never smoked'], stroke['No']),
-    ctrl.Rule(heart_disease['Yes'] &
-              smoking_status['smokes'], stroke['Yes']),
-    ctrl.Rule(heart_disease['Yes'] &
-              smoking_status['formerly smoked'], stroke['Yes']),
-    ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
-    ctrl.Rule(bmi['extremely_obese'], stroke['Yes']),
-    ctrl.Rule(bmi['underweight'], stroke['No']),
-    ctrl.Rule(heart_disease['No'], stroke['No']),
-    ctrl.Rule(bmi['underweight'] & age['0-18'], stroke['No']),
-    ctrl.Rule(heart_disease['Yes'] &
-              avg_glucose_level['High'], stroke['Yes']),
-    ctrl.Rule(heart_disease['Yes'] &
-              avg_glucose_level['Medium'], stroke['Yes']),
-    ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
-
-    ctrl.Rule(age['0-18'], stroke['No']),
-    ctrl.Rule(heart_disease['Yes'] &
-              avg_glucose_level['High'], stroke['Yes']),
-    ctrl.Rule(age['65+'] & avg_glucose_level['High'], stroke['Yes']),
-    ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
-    ctrl.Rule(age['65+'], stroke['Yes']),
-    ctrl.Rule(age['0-18'], stroke['No']),
-    ctrl.Rule(hypertension['No'], stroke['No']),
-    ctrl.Rule(heart_disease['Yes'] &
-              avg_glucose_level['High'], stroke['Yes']),
-    ctrl.Rule(heart_disease['Yes'] &
-              avg_glucose_level['Medium'], stroke['Yes']),
-    ctrl.Rule(heart_disease['Yes'] &
-              avg_glucose_level['Medium'], stroke['Yes']),
-    ctrl.Rule(bmi['normal'], stroke['No']),
-    ctrl.Rule(age['0-18'] | hypertension['No'] | heart_disease['No'] |
-              bmi['underweight'], stroke['No']),
-    ctrl.Rule(age['65+'] | hypertension['Yes'] | heart_disease['Yes'] |
-              bmi['extremely_obese'], stroke['Yes']),
-
+    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['High'], stroke['Yes']),
+    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['Medium'], stroke['Yes']),
+    # ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
+    # ctrl.Rule(smoking_status['smokes'], stroke['Yes']),
+    # ctrl.Rule(smoking_status['never smoked'], stroke['No']),
+    # ctrl.Rule(heart_disease['No'], stroke['No']),
+    # ctrl.Rule(heart_disease['No'] & smoking_status['never smoked'], stroke['No']),
+    # ctrl.Rule(heart_disease['Yes'] & smoking_status['smokes'], stroke['Yes']),
+    # ctrl.Rule(heart_disease['Yes'] & smoking_status['formerly smoked'], stroke['Yes']),
+    # ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
+    # ctrl.Rule(bmi['extremely_obese'], stroke['Yes']),
+    # ctrl.Rule(bmi['underweight'], stroke['No']),
+    # ctrl.Rule(heart_disease['No'], stroke['No']),
+    # ctrl.Rule(bmi['underweight'] & age['0-18'], stroke['No']),
+    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['High'], stroke['Yes']),
+    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['Medium'], stroke['Yes']),
+    # ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
+    # ctrl.Rule(age['0-18'], stroke['No']),
+    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['High'], stroke['Yes']),
+    # ctrl.Rule(age['65+'] & avg_glucose_level['High'], stroke['Yes']),
+    # ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
+    # ctrl.Rule(age['65+'], stroke['Yes']),
+    # ctrl.Rule(age['0-18'], stroke['No']),
+    # ctrl.Rule(hypertension['No'], stroke['No']),
+    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['High'], stroke['Yes']),
+    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['Medium'], stroke['Yes']),
+    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['Medium'], stroke['Yes']),
+    # ctrl.Rule(bmi['normal'], stroke['No']),
+    # ctrl.Rule(age['0-18'] | hypertension['No'] | heart_disease['No'] | bmi['underweight'], stroke['No']),
+    # ctrl.Rule(age['65+'] | hypertension['Yes'] | heart_disease['Yes'] | bmi['extremely_obese'], stroke['Yes']),
+    # ctrl.Rule(age["35-65"] | hypertension["Yes"] | heart_disease["Yes"] | avg_glucose_level["Medium"] | bmi["obese"] | smoking_status["formerly smoked"], stroke['No'])
 
 ]
 
+# prepare inverse value map
+label_mapper_dict = {}
+for k, v in value_mapper_dict.items():
+    label_mapper_dict[k] = {}
+    for key, value in v.items():
+        label_mapper_dict[k][value] = key
+
+print(label_mapper_dict)
+label_mapper_dict['hypertension'] = {0: "No", 1: "Yes"}
+label_mapper_dict['heart_disease'] = {0: "No", 1: "Yes"}
+label_mapper_dict['stroke'] = {0: "No", 1: "Yes"}
 
 # construct rules from training set
-# for index, row in x_test.iterrows():
-#     d = row.to_dict()
-#     val = y_test[index]
-#     # create new rule based on row
-#     for key, value in d.items():
-#         ruleset.append(ctrl.Rule(
-#             gender[d['gender']] &
-#             age[d['age']] &
-#             hypertension[d['hypertension']] &
-#             heart_disease[d['heart_disease']] &
-#             ever_married[d['ever_married']] &
-#             work_type[d['work_type']] &
-#             Residence_type[d['Residence_type']] &
-#             avg_glucose_level[d['avg_glucose_level']] &
-#             bmi[d['bmi']] &
-#             smoking_status[d['smoking_status']], val
-#         ))
+for index, row in x_train.iterrows():
+    d = row.to_dict()
+    val = y_train[index]
+    ruleset.append(ctrl.Rule(
+        age[label_mapper_dict['age'][d['age']]] &
+        hypertension[label_mapper_dict['hypertension'][d['hypertension']]] &
+        heart_disease[label_mapper_dict['heart_disease'][d['heart_disease']]] &
+        avg_glucose_level[label_mapper_dict['avg_glucose_level'][d['avg_glucose_level']]] &
+        bmi[label_mapper_dict['bmi'][d['bmi']]] &
+        smoking_status[label_mapper_dict['smoking_status'][d['smoking_status']]], stroke[label_mapper_dict["stroke"][val]]
+    ))
+
 
 
 stroke_ctrl = ctrl.ControlSystem(ruleset)
@@ -189,10 +182,12 @@ print(y_test.value_counts())
 
 for index, row in x_test.iterrows():
     d = row.to_dict()
-    print(d)
-    stroke.inputs(d)
     val = 0
     true_val = y_test[index]
+    print(d)
+    print(true_val)
+    stroke.inputs(d)
+
     stroke.compute()
     print(stroke.output['stroke'])
     if stroke.output['stroke'] > treshold:
