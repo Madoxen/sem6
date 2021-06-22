@@ -8,7 +8,8 @@ import matplotlib
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 import matplotlib.pyplot as plt
-import seaborn as sns; sns.set_theme()
+import seaborn as sns
+sns.set_theme()
 
 stroke = pd.read_csv('healthcare-dataset-stroke-data.csv')
 
@@ -62,87 +63,110 @@ for (k, v) in value_mapper_dict.items():
 stroke['bmi'] = stroke['bmi'].fillna(
     mean(stroke['bmi'].dropna()))  # nans are assigned as mean
 
+
+stroke = stroke.drop(
+    columns=['gender', 'work_type', 'Residence_type', 'ever_married'])
+
 x = stroke.iloc[:, :-1]
 y = stroke.iloc[:, -1]
 
 x_train, x_test, y_train, y_test = train_test_split(
     x, y, test_size=0.40, random_state=1)
 
-gender = ctrl.Antecedent(x_train["gender"], 'gender')
+
 age = ctrl.Antecedent(x_train["age"], 'age')
 hypertension = ctrl.Antecedent(x_train["hypertension"], 'hypertension')
 heart_disease = ctrl.Antecedent(x_train["heart_disease"], 'heart_disease')
-ever_married = ctrl.Antecedent(x_train["ever_married"], 'ever_married')
-work_type = ctrl.Antecedent(x_train["work_type"], 'work_type')
-Residence_type = ctrl.Antecedent(x_train["Residence_type"], 'Residence_type')
 avg_glucose_level = ctrl.Antecedent(
     x_train["avg_glucose_level"], 'avg_glucose_level')
 bmi = ctrl.Antecedent(x_train["bmi"], 'bmi')
 smoking_status = ctrl.Antecedent(x_train["smoking_status"], 'smoking_status')
 stroke = ctrl.Consequent(y_train, 'stroke')
 
-gender.automf(2, names=["Male", "Female"])
+
 age.automf(4, names=["0-18", "18-35", "35-65", "65+"])
 hypertension.automf(2, names=["No", "Yes"])
 heart_disease.automf(2, names=["No", "Yes"])
-ever_married.automf(2, names=["No", "Yes"])
-work_type.automf(5, names=['Private', 'Self-employed', 'children', 'Govt_job', 'Never_worked'])
-Residence_type.automf(2, names=["Urban", "Rural"])
 avg_glucose_level.automf(3, names=["Low", "Medium", "High"])
-bmi.automf(4, names=['underweight', 'normal', 'overweight', 'obese', 'extremely_obese'])
-smoking_status.automf(4, names=['never smoked', 'Unknown', 'formerly smoked', 'smokes'])
+bmi.automf(4, names=['underweight', 'normal',
+                     'overweight', 'obese', 'extremely_obese'])
+smoking_status.automf(
+    4, names=['never smoked', 'Unknown', 'formerly smoked', 'smokes'])
 stroke.automf(2, names=["No", "Yes"])
 
-rule1 = ctrl.Rule(heart_disease['Yes'] &
-                  avg_glucose_level['High'], stroke['Yes'])
-rule2 = ctrl.Rule(heart_disease['Yes'] &
-                  avg_glucose_level['Medium'], stroke['Yes'])
-rule3 = ctrl.Rule(heart_disease['Yes'], stroke['Yes'])
-rule4 = ctrl.Rule(smoking_status['smokes'], stroke['Yes'])
-rule5 = ctrl.Rule(smoking_status['never smoked'], stroke['No'])
-rule6 = ctrl.Rule(heart_disease['No'], stroke['No'])
-rule7 = ctrl.Rule(heart_disease['No'] &
-                  smoking_status['never smoked'], stroke['No'])
-rule8 = ctrl.Rule(heart_disease['Yes'] &
-                  smoking_status['smokes'], stroke['Yes'])
-rule9 = ctrl.Rule(heart_disease['Yes'] &
-                  smoking_status['formerly smoked'], stroke['Yes'])
-rule10 = ctrl.Rule(heart_disease['Yes'], stroke['Yes'])
-rule11 = ctrl.Rule(bmi['extremely_obese'], stroke['Yes'])
-rule12 = ctrl.Rule(bmi['underweight'], stroke['No'])
-rule13 = ctrl.Rule(heart_disease['No'], stroke['No'])
-rule14 = ctrl.Rule(bmi['underweight'] & age['0-18'], stroke['No'])
-rule15 = ctrl.Rule(heart_disease['Yes'] &
-                   avg_glucose_level['High'], stroke['Yes'])
-rule16 = ctrl.Rule(heart_disease['Yes'] &
-                   avg_glucose_level['Medium'], stroke['Yes'])
-rule17 = ctrl.Rule(heart_disease['Yes'], stroke['Yes'])
-rule18 = ctrl.Rule(work_type['Never_worked'], stroke['Yes'])
-rule19 = ctrl.Rule(work_type['Private'], stroke['No'])
-rule20 = ctrl.Rule(Residence_type['Urban'], stroke['No'])
-rule21 = ctrl.Rule(age['0-18'] & work_type['Private'], stroke['No'])
-rule22 = ctrl.Rule(heart_disease['Yes'] &
-                   avg_glucose_level['High'], stroke['Yes'])
-rule23 = ctrl.Rule(age['65+'] & avg_glucose_level['High'], stroke['Yes'])
-rule24 = ctrl.Rule(heart_disease['Yes'], stroke['Yes'])
-rule25 = ctrl.Rule(age['65+'], stroke['Yes'])
-rule26 = ctrl.Rule(age['0-18'], stroke['No'])
-rule27 = ctrl.Rule(hypertension['No'], stroke['No'])
-rule28 = ctrl.Rule(gender['Male'] & ever_married['No'], stroke['No'])
-rule29 = ctrl.Rule(heart_disease['Yes'] &
-                   avg_glucose_level['High'], stroke['Yes'])
-rule30 = ctrl.Rule(heart_disease['Yes'] &
-                   avg_glucose_level['Medium'], stroke['Yes'])
-rule30 = ctrl.Rule(heart_disease['Yes'] &
-                   avg_glucose_level['Medium'], stroke['Yes'])
-rule31 = ctrl.Rule(Residence_type['Rural'] | bmi['normal'], stroke['No'])
-rule32 = ctrl.Rule(gender['Female'] | age['0-18'] | hypertension['No'] | heart_disease['No'] |
-                   ever_married['No'] | work_type['Private'] | Residence_type['Urban'] | bmi['underweight'], stroke['No'])
-rule33 = ctrl.Rule(gender['Male'] | age['65+'] | hypertension['Yes'] | heart_disease['Yes'] |
-                   ever_married['Yes'] | work_type['Never_worked'] | Residence_type['Rural'] | bmi['extremely_obese'], stroke['Yes'])
 
-stroke_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10, rule11, rule12, rule13, rule14,
-                                  rule15, rule16, rule17, rule18, rule19, rule20, rule21, rule22, rule23, rule24, rule25, rule26, rule27, rule28, rule29, rule30, rule31, rule32, rule33])
+ruleset = [
+
+    ctrl.Rule(heart_disease['Yes'] &
+              avg_glucose_level['High'], stroke['Yes']),
+    ctrl.Rule(heart_disease['Yes'] &
+              avg_glucose_level['Medium'], stroke['Yes']),
+    ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
+    ctrl.Rule(smoking_status['smokes'], stroke['Yes']),
+    ctrl.Rule(smoking_status['never smoked'], stroke['No']),
+    ctrl.Rule(heart_disease['No'], stroke['No']),
+    ctrl.Rule(heart_disease['No'] &
+              smoking_status['never smoked'], stroke['No']),
+    ctrl.Rule(heart_disease['Yes'] &
+              smoking_status['smokes'], stroke['Yes']),
+    ctrl.Rule(heart_disease['Yes'] &
+              smoking_status['formerly smoked'], stroke['Yes']),
+    ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
+    ctrl.Rule(bmi['extremely_obese'], stroke['Yes']),
+    ctrl.Rule(bmi['underweight'], stroke['No']),
+    ctrl.Rule(heart_disease['No'], stroke['No']),
+    ctrl.Rule(bmi['underweight'] & age['0-18'], stroke['No']),
+    ctrl.Rule(heart_disease['Yes'] &
+              avg_glucose_level['High'], stroke['Yes']),
+    ctrl.Rule(heart_disease['Yes'] &
+              avg_glucose_level['Medium'], stroke['Yes']),
+    ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
+
+    ctrl.Rule(age['0-18'], stroke['No']),
+    ctrl.Rule(heart_disease['Yes'] &
+              avg_glucose_level['High'], stroke['Yes']),
+    ctrl.Rule(age['65+'] & avg_glucose_level['High'], stroke['Yes']),
+    ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
+    ctrl.Rule(age['65+'], stroke['Yes']),
+    ctrl.Rule(age['0-18'], stroke['No']),
+    ctrl.Rule(hypertension['No'], stroke['No']),
+    ctrl.Rule(heart_disease['Yes'] &
+              avg_glucose_level['High'], stroke['Yes']),
+    ctrl.Rule(heart_disease['Yes'] &
+              avg_glucose_level['Medium'], stroke['Yes']),
+    ctrl.Rule(heart_disease['Yes'] &
+              avg_glucose_level['Medium'], stroke['Yes']),
+    ctrl.Rule(bmi['normal'], stroke['No']),
+    ctrl.Rule(age['0-18'] | hypertension['No'] | heart_disease['No'] |
+              bmi['underweight'], stroke['No']),
+    ctrl.Rule(age['65+'] | hypertension['Yes'] | heart_disease['Yes'] |
+              bmi['extremely_obese'], stroke['Yes']),
+
+
+]
+
+
+# construct rules from training set
+# for index, row in x_test.iterrows():
+#     d = row.to_dict()
+#     val = y_test[index]
+#     # create new rule based on row
+#     for key, value in d.items():
+#         ruleset.append(ctrl.Rule(
+#             gender[d['gender']] &
+#             age[d['age']] &
+#             hypertension[d['hypertension']] &
+#             heart_disease[d['heart_disease']] &
+#             ever_married[d['ever_married']] &
+#             work_type[d['work_type']] &
+#             Residence_type[d['Residence_type']] &
+#             avg_glucose_level[d['avg_glucose_level']] &
+#             bmi[d['bmi']] &
+#             smoking_status[d['smoking_status']], val
+#         ))
+
+
+stroke_ctrl = ctrl.ControlSystem(ruleset)
 stroke = ctrl.ControlSystemSimulation(stroke_ctrl)
 
 
@@ -151,11 +175,7 @@ stroke.input['avg_glucose_level'] = 0.0
 stroke.input['bmi'] = 0.0
 stroke.input['age'] = 0.0
 stroke.input['smoking_status'] = 0.0
-stroke.input['work_type'] = 0.0
-stroke.input['gender'] = 0.0
-stroke.input['Residence_type'] = 0.0
 stroke.input['hypertension'] = 0.0
-stroke.input['ever_married'] = 0.0
 
 
 TP = 0
@@ -169,6 +189,7 @@ print(y_test.value_counts())
 
 for index, row in x_test.iterrows():
     d = row.to_dict()
+    print(d)
     stroke.inputs(d)
     val = 0
     true_val = y_test[index]
@@ -205,8 +226,8 @@ print("Precision (PPV) " + str(ppv))
 print("F1 " + str(2.0*ppv*tpr/(ppv+tpr)))
 
 
-data = [[FN, TN],[TP, FP]]
-ax = sns.heatmap(data, annot=True, fmt="d",linewidths=.5)
+data = [[FN, TN], [TP, FP]]
+ax = sns.heatmap(data, annot=True, fmt="d", linewidths=.5)
 plt.show()
 # testing phase
 # go through the test set
