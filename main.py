@@ -20,7 +20,7 @@ for c in stroke.columns:
         print(c, ":", Counter(stroke[c]))
 
 nan = [np.nan]
-print(stroke.query("bmi == @nan and smoking_status == 'Unknown'"))  # no corellation
+# print(stroke.query("bmi == @nan and smoking_status == 'Unknown'"))  # no corellation
 
 nominal_dict = {
     'age': {
@@ -66,13 +66,20 @@ stroke['bmi'] = stroke['bmi'].fillna(
 stroke = stroke.drop(
     columns=['gender', 'work_type', 'Residence_type', 'ever_married'])
 
+
+x_train_positive = stroke.loc[stroke["stroke"] == 1].iloc[:50]
+x_train_negative = stroke.loc[stroke["stroke"] == 0].iloc[:50]
+
+x_train_train = pd.concat([x_train_positive, x_train_negative])
+
+
 x = stroke.iloc[:, :-1]
 y = stroke.iloc[:, -1]
+
 
 x_train, x_test, y_train, y_test = train_test_split(
     x, y, test_size=0.995, random_state=1)
 
-print(x_train)
 
 age = ctrl.Antecedent(np.arange(0, 4, 1), 'age')
 hypertension = ctrl.Antecedent(np.arange(0, 2, 1), 'hypertension')
@@ -143,17 +150,17 @@ label_mapper_dict['heart_disease'] = {0: "No", 1: "Yes"}
 label_mapper_dict['stroke'] = {0: "No", 1: "Yes"}
 
 # construct rules from training set
-for index, row in x_train.iterrows():
+for index, row in x_train_train.iterrows():
     d = row.to_dict()
-    val = y_train[index]
+    val = d["stroke"]
     ruleset.append(ctrl.Rule(
-        age[label_mapper_dict['age'][d['age']]] |
-        hypertension[label_mapper_dict['hypertension'][d['hypertension']]] |
-        heart_disease[label_mapper_dict['heart_disease'][d['heart_disease']]] |
-        avg_glucose_level[label_mapper_dict['avg_glucose_level'][d['avg_glucose_level']]] |
-        bmi[label_mapper_dict['bmi'][d['bmi']]] |
-        smoking_status[label_mapper_dict['smoking_status']
-                       [d['smoking_status']]], stroke[label_mapper_dict["stroke"][val]]
+        age[label_mapper_dict['age'][d['age']]] &
+        hypertension[label_mapper_dict['hypertension'][d['hypertension']]] &
+        heart_disease[label_mapper_dict['heart_disease'][d['heart_disease']]] &
+        avg_glucose_level[label_mapper_dict['avg_glucose_level'][d['avg_glucose_level']]] &
+        bmi[label_mapper_dict['bmi'][d['bmi']]] &
+        smoking_status[label_mapper_dict['smoking_status'][d['smoking_status']]],
+        stroke[label_mapper_dict["stroke"][val]]
     ))
 
 
@@ -161,13 +168,17 @@ stroke_ctrl = ctrl.ControlSystem(ruleset)
 stroke_sim = ctrl.ControlSystemSimulation(stroke_ctrl)
 
 
-stroke_sim.input['heart_disease'] = 0.0
-stroke_sim.input['avg_glucose_level'] = 0.0
-stroke_sim.input['bmi'] = 0.0
-stroke_sim.input['age'] = 0.0
-stroke_sim.input['smoking_status'] = 0.0
+stroke_sim.input['heart_disease'] = 1.0
+stroke_sim.input['avg_glucose_level'] = 0.8
+stroke_sim.input['bmi'] = 3.5
+stroke_sim.input['age'] = 1.2
+stroke_sim.input['smoking_status'] = 1.4
 stroke_sim.input['hypertension'] = 0.0
 
+
+stroke_sim.compute()
+valf = stroke_sim.output['stroke']
+print(valf)
 
 TP = 0
 TN = 0
@@ -182,14 +193,12 @@ for index, row in x_test.iterrows():
     d = row.to_dict()
     val = 0
     true_val = y_test[index]
-    print(d)
-    print(true_val)
+    # print(d)
+    # print(true_val)
     stroke_sim.inputs(d)
     stroke_sim.compute()
     valf = stroke_sim.output['stroke']
-    print(valf)
-    if index % 1000 == 0:
-        stroke.view(sim=stroke_sim)
+    #print(valf)
     if valf > treshold:
         val = 1
 
@@ -204,7 +213,6 @@ for index, row in x_test.iterrows():
         else:
             FN += 1
 
-plt.show()
 
 print("TP " + str(TP))
 print("TN " + str(TN))
