@@ -70,7 +70,7 @@ x = stroke.iloc[:, :-1]
 y = stroke.iloc[:, -1]
 
 x_train, x_test, y_train, y_test = train_test_split(
-    x, y, test_size=0.995, random_state=1)
+    x, y, test_size=0.90, random_state=1)
 
 print(x_train)
 
@@ -141,20 +141,32 @@ print(label_mapper_dict)
 label_mapper_dict['hypertension'] = {0: "No", 1: "Yes"}
 label_mapper_dict['heart_disease'] = {0: "No", 1: "Yes"}
 label_mapper_dict['stroke'] = {0: "No", 1: "Yes"}
-
+count=0
 # construct rules from training set
 for index, row in x_train.iterrows():
     d = row.to_dict()
     val = y_train[index]
-    ruleset.append(ctrl.Rule(
-        age[label_mapper_dict['age'][d['age']]] |
-        hypertension[label_mapper_dict['hypertension'][d['hypertension']]] |
-        heart_disease[label_mapper_dict['heart_disease'][d['heart_disease']]] |
-        avg_glucose_level[label_mapper_dict['avg_glucose_level'][d['avg_glucose_level']]] |
-        bmi[label_mapper_dict['bmi'][d['bmi']]] |
-        smoking_status[label_mapper_dict['smoking_status']
+    if label_mapper_dict["stroke"][val] == "Yes":
+        ruleset.append(ctrl.Rule(
+            age[label_mapper_dict['age'][d['age']]] &
+            hypertension[label_mapper_dict['hypertension'][d['hypertension']]] &
+            heart_disease[label_mapper_dict['heart_disease'][d['heart_disease']]] &
+            avg_glucose_level[label_mapper_dict['avg_glucose_level'][d['avg_glucose_level']]] &
+            bmi[label_mapper_dict['bmi'][d['bmi']]] &
+            smoking_status[label_mapper_dict['smoking_status']
                        [d['smoking_status']]], stroke[label_mapper_dict["stroke"][val]]
     ))
+    elif count<150:
+            count=count+1
+            ruleset.append(ctrl.Rule(
+                age[label_mapper_dict['age'][d['age']]] &
+                hypertension[label_mapper_dict['hypertension'][d['hypertension']]] &
+                heart_disease[label_mapper_dict['heart_disease'][d['heart_disease']]] &
+                avg_glucose_level[label_mapper_dict['avg_glucose_level'][d['avg_glucose_level']]] &
+                bmi[label_mapper_dict['bmi'][d['bmi']]] &
+                smoking_status[label_mapper_dict['smoking_status']
+                [d['smoking_status']]], stroke[label_mapper_dict["stroke"][val]]))
+
 
 
 stroke_ctrl = ctrl.ControlSystem(ruleset)
@@ -222,7 +234,7 @@ print("Precision (PPV) " + str(ppv))
 print("F1 " + str(2.0*ppv*tpr/(ppv+tpr)))
 
 
-data = [[FN, TN], [TP, FP]]
+data = [[FN, TN], [FP, TP]]
 ax = sns.heatmap(data, annot=True, fmt="d", linewidths=.5)
 plt.show()
 # testing phase
