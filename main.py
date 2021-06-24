@@ -8,10 +8,61 @@ import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
+import sys
 sns.set_theme()
 
-stroke = pd.read_csv('healthcare-dataset-stroke-data.csv')
 
+def maxIndex(arr):
+    maxVal = -float("inf")
+    idx = 0
+    for i in range(len(arr)):
+        if arr[i] > maxVal:
+            maxVal = arr[i]
+            idx = i
+    return idx
+
+
+class trapezoidFuzzifier():
+    def __init__(self, a, b, c, d, label):
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+        self.label = label
+        super().__init__()
+
+    def fuzzy(self, x):
+        if x <= self.a:
+            return 0
+        if x > self.a and x <= self.b:
+            return (x - self.a) / (self.b - self.a)
+        if x > self.b and x < self.c:
+            return 1
+        if x >= self.c and x <= self.d:
+            return (self.d - x) / (self.d - self.c)
+        return 0
+
+
+class triangleFuzzifier():
+
+    def __init__(self, a, b, c, label):
+        self.a = a
+        self.b = b
+        self.c = c
+        self.label = label
+        super().__init__()
+
+    def fuzzy(self, x):
+        if self.a < x and x <= self.b:
+            return (x - self.a) / (self.b - self.a)
+        if self.b < x and x < self.c:
+            return (self.c - x) / (self.c - self.b)
+        return 0
+
+
+stroke = pd.read_csv('healthcare-dataset-stroke-data.csv')
 stroke = stroke.query("gender != 'Other'")  # oh no
 
 stroke.drop('id', inplace=True, axis=1)
@@ -22,27 +73,6 @@ for c in stroke.columns:
 nan = [np.nan]
 # print(stroke.query("bmi == @nan and smoking_status == 'Unknown'"))  # no corellation
 
-nominal_dict = {
-    'age': {
-        'bins': [0, 18, 35, 65],
-        'names': ['0-18', '18-35', '35-65', '65+']
-    },
-    'avg_glucose_level': {
-        'bins': [0, 70, 130],
-        'names': ['Low', 'Medium', 'High']
-    },
-    'bmi': {
-        'bins': [0, 18.5, 25, 30, 35],
-        'names': ['underweight', 'normal', 'overweight', 'obese', 'extremely_obese']
-    }
-
-}
-
-for i in nominal_dict.keys():
-    pair = nominal_dict[i]
-    d = dict(enumerate(pair['names'], 1))
-    bins = pair['bins']
-    stroke[i] = np.vectorize(d.get)(np.digitize(stroke[i], bins))
 
 value_mapper_dict = {
     'gender': {'Female': 0, 'Male': 1},
@@ -50,9 +80,6 @@ value_mapper_dict = {
     'work_type': {'Private': 3, 'Self-employed': 4, 'children': 0, 'Govt_job': 2, 'Never_worked': 1},
     'Residence_type': {'Urban': 0, 'Rural': 1},
     'smoking_status': {'never smoked': 0, 'Unknown': 1, 'formerly smoked': 2, 'smokes': 3},
-    'age': {'0-18': 0, '18-35': 1, '35-65': 2, '65+': 3},
-    'avg_glucose_level': {'Low': 0, 'Medium': 1, 'High': 2},
-    'bmi': {'underweight': 0, 'normal': 1, 'overweight': 2, 'obese': 3, 'extremely_obese': 4}
 }
 
 for (k, v) in value_mapper_dict.items():
@@ -63,155 +90,212 @@ stroke['bmi'] = stroke['bmi'].fillna(
     mean(stroke['bmi'].dropna()))  # nans are assigned as mean
 
 
-stroke = stroke.drop(
-    columns=['gender', 'work_type', 'Residence_type', 'ever_married'])
-
-
-x_train_positive = stroke.loc[stroke["stroke"] == 1].iloc[:50]
-x_train_negative = stroke.loc[stroke["stroke"] == 0].iloc[:50]
-
-x_train_train = pd.concat([x_train_positive, x_train_negative])
-
-
 x = stroke.iloc[:, :-1]
 y = stroke.iloc[:, -1]
 
 
-x_train, x_test, y_train, y_test = train_test_split(
-    x, y, test_size=0.995, random_state=1)
+best = SelectKBest(score_func=chi2, k=10)
+fit = best.fit(x, y)
+dfscores = pd.DataFrame(fit.scores_)
+dfcols = pd.DataFrame(stroke.columns)
+print(pd.concat([dfcols, dfscores], axis=1))
 
 
-age = ctrl.Antecedent(np.arange(0, 4, 1), 'age')
-hypertension = ctrl.Antecedent(np.arange(0, 2, 1), 'hypertension')
-heart_disease = ctrl.Antecedent(np.arange(0, 2, 1), 'heart_disease')
-avg_glucose_level = ctrl.Antecedent(np.arange(0, 3, 1), 'avg_glucose_level')
-bmi = ctrl.Antecedent(np.arange(0, 5, 1), 'bmi')
-smoking_status = ctrl.Antecedent(np.arange(0, 4, 1), 'smoking_status')
-stroke = ctrl.Consequent([0, 1], 'stroke')
+best = SelectKBest(score_func=chi2, k=10)
+fit = best.fit(x, y)
+dfscores = pd.DataFrame(fit.scores_)
+dfcols = pd.DataFrame(stroke.columns)
+print(pd.concat([dfcols, dfscores], axis=1))
+
+corrmat = stroke.corr()
+top_corr_features = corrmat.index
+plt.figure(figsize=(10, 10))
+# plot heat map
+g = sns.heatmap(stroke[top_corr_features].corr(), annot=True, cmap="RdYlGn")
 
 
-age.automf(4, names=["0-18", "18-35", "35-65", "65+"])
-hypertension.automf(2, names=["No", "Yes"])
-heart_disease.automf(2, names=["No", "Yes"])
-avg_glucose_level.automf(3, names=["Low", "Medium", "High"])
-bmi.automf(4, names=['underweight', 'normal',
-                     'overweight', 'obese', 'extremely_obese'])
-smoking_status.automf(
-    4, names=['never smoked', 'Unknown', 'formerly smoked', 'smokes'])
-stroke.automf(2, names=["No", "Yes"])
+stroke = stroke.drop(
+    columns=['gender', 'work_type', 'Residence_type', 'ever_married'])
+
+x = stroke.iloc[:, :-1]
+y = stroke.iloc[:, -1]
+
+best = SelectKBest(score_func=chi2, k=6)
+fit = best.fit(x, y)
+dfscores = pd.DataFrame(fit.scores_)
+dfcols = pd.DataFrame(stroke.columns)
+print(pd.concat([dfcols, dfscores], axis=1))
+
+corrmat = stroke.corr()
+top_corr_features = corrmat.index
+plt.figure(figsize=(10, 10))
+# plot heat map
+g = sns.heatmap(stroke[top_corr_features].corr(), annot=True, cmap="RdYlGn")
+plt.show()
 
 
-ruleset = [
+# create membership functions
 
-    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['High'], stroke['Yes']),
-    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['Medium'], stroke['Yes']),
-    # ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
-    # ctrl.Rule(smoking_status['smokes'], stroke['Yes']),
-    # ctrl.Rule(smoking_status['never smoked'], stroke['No']),
-    # ctrl.Rule(heart_disease['No'], stroke['No']),
-    # ctrl.Rule(heart_disease['No'] & smoking_status['never smoked'], stroke['No']),
-    # ctrl.Rule(heart_disease['Yes'] & smoking_status['smokes'], stroke['Yes']),
-    # ctrl.Rule(heart_disease['Yes'] & smoking_status['formerly smoked'], stroke['Yes']),
-    # ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
-    # ctrl.Rule(bmi['extremely_obese'], stroke['Yes']),
-    # ctrl.Rule(bmi['underweight'], stroke['No']),
-    # ctrl.Rule(heart_disease['No'], stroke['No']),
-    # ctrl.Rule(bmi['underweight'] & age['0-18'], stroke['No']),
-    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['High'], stroke['Yes']),
-    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['Medium'], stroke['Yes']),
-    # ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
-    # ctrl.Rule(age['0-18'], stroke['No']),
-    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['High'], stroke['Yes']),
-    # ctrl.Rule(age['65+'] & avg_glucose_level['High'], stroke['Yes']),
-    # ctrl.Rule(heart_disease['Yes'], stroke['Yes']),
-    # ctrl.Rule(age['65+'], stroke['Yes']),
-    # ctrl.Rule(age['0-18'], stroke['No']),
-    # ctrl.Rule(hypertension['No'], stroke['No']),
-    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['High'], stroke['Yes']),
-    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['Medium'], stroke['Yes']),
-    # ctrl.Rule(heart_disease['Yes'] & avg_glucose_level['Medium'], stroke['Yes']),
-    # ctrl.Rule(bmi['normal'], stroke['No']),
-    # ctrl.Rule(age['0-18'] | hypertension['No'] | heart_disease['No'] | bmi['underweight'], stroke['No']),
-    # ctrl.Rule(age['65+'] | hypertension['Yes'] | heart_disease['Yes'] | bmi['extremely_obese'], stroke['Yes']),
-    # ctrl.Rule(age["35-65"] | hypertension["Yes"] | heart_disease["Yes"] | avg_glucose_level["Medium"] | bmi["obese"] | smoking_status["formerly smoked"], stroke['No'])
 
+ageMF = [
+    trapezoidFuzzifier(0, 0, 10, 30, "lowAge"),
+    triangleFuzzifier(20, 40, 50, "mediumAge"),
+    trapezoidFuzzifier(49, 60, 80, 100, "highAge"),
 ]
 
-# prepare inverse value map
-label_mapper_dict = {}
-for k, v in value_mapper_dict.items():
-    label_mapper_dict[k] = {}
-    for key, value in v.items():
-        label_mapper_dict[k][value] = key
+glucoseMF = [
+    trapezoidFuzzifier(0, 0, 10, 70, "lowGlucose"),
+    triangleFuzzifier(60, 100, 120, "mediumGlucose"),
+    trapezoidFuzzifier(119, 140, 200, 500, "highGlucose"),
+]
 
-print(label_mapper_dict)
-label_mapper_dict['hypertension'] = {0: "No", 1: "Yes"}
-label_mapper_dict['heart_disease'] = {0: "No", 1: "Yes"}
-label_mapper_dict['stroke'] = {0: "No", 1: "Yes"}
+bmiMF = [
+    trapezoidFuzzifier(0, 0, 18.5, 25, "lowBmi"),
+    triangleFuzzifier(24, 30, 35, "mediumBmi"),
+    trapezoidFuzzifier(34, 34, 40, 45, "highBmi"),
+]
 
-# construct rules from training set
-for index, row in x_train_train.iterrows():
-    d = row.to_dict()
-    val = d["stroke"]
-    ruleset.append(ctrl.Rule(
-        age[label_mapper_dict['age'][d['age']]] &
-        hypertension[label_mapper_dict['hypertension'][d['hypertension']]] &
-        heart_disease[label_mapper_dict['heart_disease'][d['heart_disease']]] &
-        avg_glucose_level[label_mapper_dict['avg_glucose_level'][d['avg_glucose_level']]] &
-        bmi[label_mapper_dict['bmi'][d['bmi']]] &
-        smoking_status[label_mapper_dict['smoking_status'][d['smoking_status']]],
-        stroke[label_mapper_dict["stroke"][val]]
-    ))
+smokingMF = [
+    trapezoidFuzzifier(0, 0, 0.8, 1, "noSmoke"),
+    trapezoidFuzzifier(2, 2, 2.8, 3, "smoke"),
+]
 
 
-stroke_ctrl = ctrl.ControlSystem(ruleset)
-stroke_sim = ctrl.ControlSystemSimulation(stroke_ctrl)
+# transform set to memberships
+age = stroke["age"]
+bmi = stroke["bmi"]
+avg_glucose_level = stroke["avg_glucose_level"]
+smoking_status = stroke["smoking_status"]
+
+data = {}
+
+for fuzzifier in ageMF:
+    data[fuzzifier.label] = np.array(list(map(fuzzifier.fuzzy, age)))
+
+for fuzzifier in bmiMF:
+    data[fuzzifier.label] = np.array(list(map(fuzzifier.fuzzy, bmi)))
+
+for fuzzifier in glucoseMF:
+    data[fuzzifier.label] = np.array(
+        list(map(fuzzifier.fuzzy, avg_glucose_level)))
+
+for fuzzifier in smokingMF:
+    data[fuzzifier.label] = np.array(
+        list(map(fuzzifier.fuzzy, smoking_status)))
+
+data = pd.DataFrame(data)
+data = pd.concat([data, stroke["heart_disease"],
+                  stroke["hypertension"]], axis=1)
+data = data.dropna()
 
 
-stroke_sim.input['heart_disease'] = 1.0
-stroke_sim.input['avg_glucose_level'] = 0.8
-stroke_sim.input['bmi'] = 3.5
-stroke_sim.input['age'] = 1.2
-stroke_sim.input['smoking_status'] = 1.4
-stroke_sim.input['hypertension'] = 0.0
+#x = df.iloc[:, :-1]
+# x_train, x_test, y_train, y_test = train_test_split(
+#   x, y, test_size=0.5, random_state=1)
+
+# create ruleset from train_set
+ruleLabels = [["lowAge", "mediumAge", "highAge"],
+              ["lowBmi", "mediumBmi", "highBmi"],
+              ["lowGlucose", "mediumGlucose", "highGlucose"],
+              ["noSmoke", "smoke"],
+              ["no_heart_disease", "heart_disease"],
+              ["no_hypertension", "hypertension"]]
 
 
-stroke_sim.compute()
-valf = stroke_sim.output['stroke']
-print(valf)
+# create every possible rule permutation
+rules = []
+
+for ageRule in ruleLabels[0]:
+    for bmiRule in ruleLabels[1]:
+        for glucoseRule in ruleLabels[2]:
+            for smokeRule in ruleLabels[3]:
+                for heartRule in ruleLabels[4]:
+                    for hypertensionRule in ruleLabels[5]:
+                        rules.append(
+                            [ageRule, bmiRule, glucoseRule, smokeRule, heartRule, hypertensionRule])
+
+# for each rule permutation assign output based on points
+pointMap = {
+    "lowAge": 0,
+    "mediumAge": 0.5,
+    "highAge": 1,
+
+    "lowBmi": 0,
+    "mediumBmi": 0.5,
+    "highBmi": 1,
+
+    "lowGlucose": 0.25,
+    "mediumGlucose": 0,
+    "highGlucose": 1,
+
+    "smoke": 1,
+    "noSmoke": 0,
+
+    "no_heart_disease": 0,
+    "heart_disease": 1,
+    "no_hypertension": 0,
+    "hypertension": 1
+}
+
+point_treshold = 4  # points to die
+rule_outputs = []
+for rule in rules:
+    points = 0
+    for r in rule:
+        points += pointMap[r]
+    if points >= point_treshold:
+        rule_outputs.append(1)  # dead
+    else:
+        rule_outputs.append(0)  # alive
+
+
+#defuzzfy and classify
+# for each input data row
+predictions = []
+for index, row in data.iterrows():
+    # evaluate every single rule
+    ruleProducts = []
+    for rule in rules:
+        # calculate product based on a rule
+        prod = 1
+        for r in rule:
+            if r != "no_heart_disease" and r != "heart_disease" and r != "no_hypertension" and r != "hypertension":
+                if row[r] != 0:
+                    prod *= row[r]
+            else:
+                if r == "no_heart_disease" and row["heart_disease"] != 0:
+                    prod *= 0.01  # penalty
+                if r == "heart_disease" and row["heart_disease"] != 1:
+                    prod *= 0.01  # penalty
+                if r == "no_hypertension" and row["hypertension"] != 0:
+                    prod *= 0.01  # penalty
+                if r == "hypertension" and row["hypertension"] != 1:
+                    prod *= 0.01  # penalty
+        ruleProducts.append(prod)
+
+    # after we got all rule products for one row, let's gather a prediction for given input row
+    idx = maxIndex(ruleProducts)
+    predictions.append(rule_outputs[idx])
+
 
 TP = 0
 TN = 0
 FP = 0
 FN = 0
-# acceptance treshold, values bigger than this treshold are positive, rest are negative
-treshold = 0.5
 
-print(y_test.value_counts())
-
-for index, row in x_test.iterrows():
-    d = row.to_dict()
-    val = 0
-    true_val = y_test[index]
-    # print(d)
-    # print(true_val)
-    stroke_sim.inputs(d)
-    stroke_sim.compute()
-    valf = stroke_sim.output['stroke']
-    #print(valf)
-    if valf > treshold:
-        val = 1
-
-    if val == 1:
+for i in range(len(predictions)):
+    true_val = y.iloc[i]
+    val = predictions[i]
+    if true_val == True:
         if val == true_val:
-            TP += 1  # predicted
+            TP += 1
         else:
-            FP += 1
+            FN += 1
     else:
         if val == true_val:
             TN += 1
         else:
-            FN += 1
+            FP += 1
 
 
 print("TP " + str(TP))
@@ -220,7 +304,7 @@ print("FP " + str(FP))
 print("FN " + str(FN))
 tpr = TP / (TP + FN)
 tnr = TN / (TN + FP)
-acc = TP+TN / (y_test.count())
+acc = TP+TN / (y.count())
 ppv = TP / (TP + FP)
 
 print("Sensitivity (TPR) " + str(tpr))
