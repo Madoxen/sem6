@@ -264,15 +264,14 @@ for index, row in data.iterrows():
                     prod *= row[r]
             else:
                 if r == "no_heart_disease" and row["heart_disease"] != 0:
-                    prod *= 0.01  # penalty
+                    prod *= 0.1  # penalty
                 if r == "heart_disease" and row["heart_disease"] != 1:
-                    prod *= 0.01  # penalty
+                    prod *= 0.1  # penalty
                 if r == "no_hypertension" and row["hypertension"] != 0:
-                    prod *= 0.01  # penalty
+                    prod *= 0.1  # penalty
                 if r == "hypertension" and row["hypertension"] != 1:
-                    prod *= 0.01  # penalty
+                    prod *= 0.1  # penalty
         ruleProducts.append(prod)
-
     # after we got all rule products for one row, let's gather a prediction for given input row
     idx = maxIndex(ruleProducts)
     predictions.append(rule_outputs[idx])
