@@ -140,24 +140,24 @@ plt.show()
 ageMF = [
     trapezoidFuzzifier(0, 0, 10, 30, "lowAge"),
     triangleFuzzifier(20, 40, 50, "mediumAge"),
-    trapezoidFuzzifier(49, 60, 80, 100, "highAge"),
+    trapezoidFuzzifier(40, 60, 80, 100, "highAge"),
 ]
 
 glucoseMF = [
     trapezoidFuzzifier(0, 0, 10, 70, "lowGlucose"),
     triangleFuzzifier(60, 100, 120, "mediumGlucose"),
-    trapezoidFuzzifier(119, 140, 200, 500, "highGlucose"),
+    trapezoidFuzzifier(110, 140, 400, 500, "highGlucose"),
 ]
 
 bmiMF = [
     trapezoidFuzzifier(0, 0, 18.5, 25, "lowBmi"),
     triangleFuzzifier(24, 30, 35, "mediumBmi"),
-    trapezoidFuzzifier(34, 34, 40, 45, "highBmi"),
+    trapezoidFuzzifier(30, 35, 40, 45, "highBmi"),
 ]
 
 smokingMF = [
-    trapezoidFuzzifier(0, 0, 0.8, 1, "noSmoke"),
-    trapezoidFuzzifier(2, 2, 2.8, 3, "smoke"),
+    trapezoidFuzzifier(0, 0, 0.8, 1, "noSmoke"),  # never smoked, unknown
+    trapezoidFuzzifier(2, 2, 2.8, 3, "smoke"),  # formerly smoked, smokes
 ]
 
 
@@ -237,16 +237,16 @@ pointMap = {
     "hypertension": 1
 }
 
-point_treshold = 4  # points to die
+point_treshold = 3.0  # points to die
 rule_outputs = []
 for rule in rules:
     points = 0
     for r in rule:
         points += pointMap[r]
     if points >= point_treshold:
-        rule_outputs.append(1)  # dead
+        rule_outputs.append(True)  # dead
     else:
-        rule_outputs.append(0)  # alive
+        rule_outputs.append(False)  # alive
 
 
 #defuzzfy and classify
@@ -314,7 +314,7 @@ print("Precision (PPV) " + str(ppv))
 print("F1 " + str(2.0*ppv*tpr/(ppv+tpr)))
 
 
-data = [[FN, TN], [TP, FP]]
+data = [[TP, FN], [FP, TN]]
 ax = sns.heatmap(data, annot=True, fmt="d", linewidths=.5)
 plt.show()
 # testing phase
