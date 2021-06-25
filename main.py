@@ -139,19 +139,20 @@ plt.show()
 
 ageMF = [
     trapezoidFuzzifier(0, 0, 10, 30, "lowAge"),
-    triangleFuzzifier(20, 40, 50, "mediumAge"),
+    triangleFuzzifier(20, 50, 40, "mediumAge"),
     trapezoidFuzzifier(40, 60, 80, 100, "highAge"),
 ]
 
+
 glucoseMF = [
     trapezoidFuzzifier(0, 0, 10, 70, "lowGlucose"),
-    triangleFuzzifier(60, 100, 120, "mediumGlucose"),
+    triangleFuzzifier(60, 120, 100, "mediumGlucose"),
     trapezoidFuzzifier(110, 140, 400, 500, "highGlucose"),
 ]
 
 bmiMF = [
     trapezoidFuzzifier(0, 0, 18.5, 25, "lowBmi"),
-    triangleFuzzifier(24, 30, 35, "mediumBmi"),
+    triangleFuzzifier(18.5, 35, 30, "mediumBmi"),
     trapezoidFuzzifier(30, 35, 40, 45, "highBmi"),
 ]
 
